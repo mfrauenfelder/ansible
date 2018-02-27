@@ -1,0 +1,114 @@
+- hosts: localhost
+  vars:
+    admin_url: "https://ipt-admin.3scale.net"
+    access_token: "access_token=c5d4a8d8db37ec8db6fbcbe11ba332e14fa6cf8a59a75caed2b8afbafb0208f3"
+    private_url: "https://redhatdemo3-api-backend-test.192.168.64.2.nip.io:443"
+    public_url: "https://apicast-api-gateway-test.192.168.64.2.nip.io:443"
+  tasks:
+
+  - name: create service
+    uri:
+      url: "{{ admin_url }}/admin/api/services.json"
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "{{ access_token }}&name=DummyAPI&system_name=dummyapi"
+      return_content: yes
+      status_code: 201
+      validate_certs: no
+    register: service_result1
+  - debug: msg="{{ service_result1.json }}"
+  - set_fact: service_id="{{ service_result1.json.service.id }}"
+  - debug: msg="Service ID = {{ service_id }}"
+
+
+  - name: update proxy
+    uri:
+      url: "{{ admin_url }}/admin/api/services/{{ service_id }}/proxy.json"
+      method: PATCH
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "{{ access_token }}&endpoint={{ public_url }}&api_backend={{ private_url }}"
+      return_content: yes
+      status_code: 200
+      validate_certs: no
+    register: proxy_result
+  - debug: msg="{{ proxy_result.json }}"
+
+  - name: create application plan
+    uri:
+      url: "{{ admin_url }}/admin/api/services/{{ service_id }}/application_plans.json"
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "{{ access_token }}&name=DummyPlan&system_name=dummyplan"
+      return_content: yes
+      status_code: 201
+      validate_certs: no
+    register: plan_result
+  - debug: msg="{{ plan_result.json }}"
+  - set_fact: plan_id="{{ plan_result.json.application_plan.id }}"
+  - debug: msg="Plan ID = {{ plan_id }}"
+
+  - name: publish application plan
+    uri:
+      url: "{{ admin_url }}/admin/api/services/{{ service_id }}/application_plans/{{ plan_id }}.json"
+      method: PUT
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "{{ access_token }}&state=published"
+      return_content: yes
+      status_code: 200
+      validate_certs: no
+    register: publish_result
+  - debug: msg="{{ publish_result.json }}"
+
+  - name: get user account
+    uri:
+      url: "{{ admin_url }}/admin/api/accounts/find.json?{{ access_token }}&username=john"
+      method: GET
+      return_content: yes
+      status_code: 200
+      validate_certs: no
+    register: account_result
+  - debug: msg="{{ account_result.json }}"
+  - set_fact: account_id="{{ account_result.json.account.id }}"
+  - debug: msg="Account ID = {{ account_id }}"
+
+  - name: create application
+    uri:
+      url: "{{ admin_url }}/admin/api/accounts/{{ account_id }}/applications.json"
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "{{ access_token }}&plan_id={{ plan_id }}&name=DummyApp&description=My+Dummy+App"
+      return_content: yes
+      status_code: 201
+      validate_certs: no
+    register: application_result
+  - debug: msg="{{ application_result.json }}"
+
+  - name: get latest version
+    uri:
+      url: "{{ admin_url }}/admin/api/services/{{ service_id }}/proxy/configs/sandbox/latest.json?{{ access_token }}"
+      method: GET
+      return_content: yes
+      status_code: 200
+      validate_certs: no
+    register: version_result
+  - debug: msg="{{ version_result.json }}"
+  - set_fact: version="{{ version_result.json.proxy_config.version }}"
+  - debug: msg="Version = {{ version }}"
+
+  - name: promote latest version
+    uri:
+      url: "{{ admin_url }}/admin/api/services/{{ service_id }}/proxy/configs/sandbox/{{ version }}/promote.json"
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "{{ access_token }}&to=production"
+      return_content: yes
+      status_code: 201
+      validate_certs: no
+    register: promote_result
+  - debug: msg="{{ promote_result.json }}"
