@@ -1,7 +1,7 @@
 - hosts: localhost
   vars:
     admin_url: "https://ipt-admin.3scale.net"
-    access_token: "access_token=c5d4a8d8db37ec8db6fbcbe11ba332e14fa6cf8a59a75caed2b8afbafb0208f3"
+    access_token: "access_token=fc26f4bdf71813e5136b5f99d7bc2c0f775fe0fa9b9b3dc6df117249b6196604"
     private_url: "https://redhatdemo3-api-backend-test.192.168.64.2.nip.io:443"
     public_url: "https://apicast-api-gateway-test.192.168.64.2.nip.io:443"
   tasks:
