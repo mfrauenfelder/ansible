@@ -1,3 +1,10 @@
+- git:
+    repo: 'https://github.com/mfrauenfelder/ansible.git
+    dest: /tmp/checkout
+- name: Read stage variables
+  include_vars:
+    file: /tmp/checkout/{{ stage }}-config.yml
+    name: stageVar
 - hosts: localhost
   vars:
     admin_url: "https://ipt-admin.3scale.net"
