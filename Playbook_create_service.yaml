@@ -19,7 +19,7 @@
       method: POST
       headers:
         Content-Type: application/x-www-form-urlencoded
-      body: "{{ access_token }}&name=DummyAPI&system_name=dummyapi"
+      body: "{{ access_token }}&name={{ stageVar.Name }}&system_name={{ stageVar.systemName }}"
       return_content: yes
       status_code: 201
       validate_certs: no
