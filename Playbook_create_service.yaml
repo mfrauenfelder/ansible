@@ -8,13 +8,13 @@
   tasks:
   - name: git checkout
     git:
-      repo: 'https://github.com/mfrauenfelder/ansible.git
-      dest: /tmp/checkout
+      repo: "https://github.com/mfrauenfelder/ansible.git"
+      dest: "/tmp/checkout"
 
   - name: Read stage variables
     include_vars:
-      file: /tmp/checkout/{{ stage }}-config.yml
-      name: stageVar
+      file: "/tmp/checkout/{{ stage }}-config.yml"
+      name: "stageVar"
 
   - name: create service
     uri:
@@ -22,7 +22,7 @@
       method: POST
       headers:
         Content-Type: application/x-www-form-urlencoded
-      body: "{{ access_token }}&name={{ stageVar.Name }}&system_name={{ stageVar.systemName }}"
+      body: "{{ access_token }}&name={{ stageVar.name }}&system_name={{ stageVar.systemName }}"
       return_content: yes
       status_code: 201
       validate_certs: no
@@ -51,7 +51,7 @@
       method: POST
       headers:
         Content-Type: application/x-www-form-urlencoded
-      body: "{{ access_token }}&name=DummyPlan&system_name=dummyplan"
+      body: "{{ access_token }}&name={{ stageVar.name }}_plan&system_name={{ stageVar.systemName }}_plan"
       return_content: yes
       status_code: 201
       validate_certs: no
