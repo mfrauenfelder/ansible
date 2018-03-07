@@ -3,7 +3,6 @@
     admin_url: "https://ipt-admin.3scale.net"
     access_token: "access_token=fc26f4bdf71813e5136b5f99d7bc2c0f775fe0fa9b9b3dc6df117249b6196604"
     private_url: "https://echo-api.3scale.net:443"
-    public_url: "https://apicast-api-gateway-test.192.168.64.2.nip.io:443"
 
   tasks:
   - name: git checkout
@@ -31,14 +30,13 @@
   - set_fact: service_id="{{ service_result1.json.service.id }}"
   - debug: msg="Service ID = {{ service_id }}"
 
-
   - name: update proxy
     uri:
       url: "{{ admin_url }}/admin/api/services/{{ service_id }}/proxy.json"
       method: PATCH
       headers:
         Content-Type: application/x-www-form-urlencoded
-      body: "{{ access_token }}&endpoint={{ public_url }}&api_backend={{ private_url }}"
+      body: "{{ access_token }}&api_backend={{ private_url }}"
       return_content: yes
       status_code: 200
       validate_certs: no
@@ -91,34 +89,10 @@
       method: POST
       headers:
         Content-Type: application/x-www-form-urlencoded
-      body: "{{ access_token }}&plan_id={{ plan_id }}&name=DummyApp&description=My+Dummy+App"
+      body: "{{ access_token }}&plan_id={{ plan_id }}&name={{ stageVar.name }}&description=My+Dummy+App"
       return_content: yes
       status_code: 201
       validate_certs: no
     register: application_result
   - debug: msg="{{ application_result.json }}"
 
-  - name: get latest version
-    uri:
-      url: "{{ admin_url }}/admin/api/services/{{ service_id }}/proxy/configs/sandbox/latest.json?{{ access_token }}"
-      method: GET
-      return_content: yes
-      status_code: 200
-      validate_certs: no
-    register: version_result
-  - debug: msg="{{ version_result.json }}"
-  - set_fact: version="{{ version_result.json.proxy_config.version }}"
-  - debug: msg="Version = {{ version }}"
-
-  - name: promote latest version
-    uri:
-      url: "{{ admin_url }}/admin/api/services/{{ service_id }}/proxy/configs/sandbox/{{ version }}/promote.json"
-      method: POST
-      headers:
-        Content-Type: application/x-www-form-urlencoded
-      body: "{{ access_token }}&to=production"
-      return_content: yes
-      status_code: 201
-      validate_certs: no
-    register: promote_result
-  - debug: msg="{{ promote_result.json }}"
